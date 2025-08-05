@@ -1,0 +1,9 @@
+# „Ã·œ«  «·»‰«¡
+bin/
+obj/
+
+# „·›«  «·»Ì∆…
+.env
+
+# ≈⁄œ«œ«  «· ÿ»Ìﬁ
+appsettings.Development.json

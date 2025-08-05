@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Product</title>
+</head>
+<body>
+    <h1>Message from API:</h1>
+    <div>Click the button to get data</div>
+
+    <table id="result" border>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category Name</th>
+            </tr>
+        </thead>
+        <tbody id="productBody">
+        </tbody>
+    </table>
+
+    <button id="loadBtn">Load Product</button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#loadBtn").click(function () {
+                $.ajax({
+                    url: "https://localhost:7250/Product", 
+                    method: "GET",
+                    success: function (data) {
+                        const tbody = document.getElementById("productBody");
+                        tbody.innerHTML = ""; 
+
+                        for (let product of data) {
+                            tbody.innerHTML += `
+                                    <tr>
+                                        <td>${product.id}</td>
+                                        <td>${product.name}</td>
+                                        <td>${product.price}</td>
+                                        <td>${product.categoryName}</td>
+                                    </tr>
+                                `;
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $("#productBody").html("<tr><td colspan='4'>Error fetching data</td></tr>");
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
