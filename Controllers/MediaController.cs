@@ -111,8 +111,8 @@ namespace API_Demo.Controllers
             return BadRequest("No File To Remove");
 
         }
-        [HttpDelete("Remove All")]
-        public IActionResult RemoveAll()
+        [HttpDelete("Clear")]
+        public IActionResult Clear()
         {
             bool deleted = _fileService.RemoveAll();
             if (deleted)

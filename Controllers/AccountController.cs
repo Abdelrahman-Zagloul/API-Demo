@@ -127,6 +127,23 @@ namespace API_Demo.Controllers
             return Ok("Added to role Successfully");
         }
 
+        [Authorize]
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            bool result = await _authService.logoutAsync(userId);
+
+            if (!result)
+                return BadRequest("Error in Logout");
+
+
+            Response.Cookies.Delete("RefreshToken"); 
+            return Ok("Logout Successfully");
+        }
         private void SetRefreshTokenInCookie(string refreshToken, DateTime expirationData)
         {
             var cookieOptions = new CookieOptions()

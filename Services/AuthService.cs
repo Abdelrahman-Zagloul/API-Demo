@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using API_Demo.Data;
 using API_Demo.Dto;
 using API_Demo.Model;
 using API_Demo.Settings;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
-using API_Demo.Data;
+using System.Text;
 using Twilio.TwiML.Voice;
 namespace API_Demo.Services
 {
@@ -104,6 +105,22 @@ namespace API_Demo.Services
 
             return authDto;
 
+        }
+        public async Task<bool> logoutAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            var refreshTokens = await _context.RefreshTokens
+                         .Where(r => r.ApplicationUserId == userId)
+                         .ToListAsync();
+            if (refreshTokens.Any())
+            {
+                _context.RefreshTokens.RemoveRange(refreshTokens);
+                await _context.SaveChangesAsync();
+            }
+            return true;
         }
         public async Task<AuthenticationDto> RefreshTokenAsync(string userId, string refreshToken)
         {
