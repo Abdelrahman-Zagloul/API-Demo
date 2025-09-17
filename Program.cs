@@ -14,6 +14,8 @@ using API_Demo.Model;
 using API_Demo.Repository;
 using API_Demo.Services;
 using API_Demo.Settings;
+using API_Demo.Logger;
+using API_Demo.Hubs;
 namespace API_Demo;
 public class Program
 {
@@ -23,7 +25,7 @@ public class Program
 
         #region Serilog
         // for serilog
-        // ≈⁄œ«œ Serilog
+        // configure Serilog
 
         //Log.Logger = new LoggerConfiguration()
         //    .MinimumLevel.Information()
@@ -48,7 +50,7 @@ public class Program
         //var connectionStringsOptions = new ConnectionStringsOptions();
         //builder.Configuration.GetSection("ConnectionStrings").Bind(connectionStringsOptions);
         //builder.Services.AddSingleton(connectionStringsOptions);
-        // for IOptions<ConnectionStringsOptions> and IOptionsSnapshot and IOptionsMonitor
+        // for IOptions<ConnectionStringsOptions> && IOptionsSnapshot && IOptionsMonitor
 
         builder.Services.Configure<ConnectionStringSettings>(builder.Configuration.GetSection("ConnectionStrings"));
         builder.Services.Configure<ExternalLoginSettings>(builder.Configuration.GetSection("ExternalLogin"));
@@ -132,6 +134,9 @@ public class Program
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
         });
 
+        builder.Services.AddHealthChecks()
+            .AddDbContextCheck<AppDbContext>(); 
+
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
         {
             options.Password.RequireDigit = false;
@@ -154,13 +159,14 @@ public class Program
         //})
         //.AddEntityFrameworkStores<AppDbContext>();*/
 
+        builder.Services.AddSingleton<ILogging, Logging>();
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddScoped<PermissionBeasdOnAuthorization>();
         builder.Services.AddTransient<IMailService, MailService>();
         builder.Services.AddTransient<ISMSService, SMSService>();
-        builder.Services.AddScoped<PermissionBeasdOnAuthorization>();
         builder.Services.AddHttpContextAccessor();
         #endregion
 
@@ -214,6 +220,11 @@ public class Program
         //     options.Filters.Add<PermissionBeasdOnAuthorization>();
         //});
 
+
+        //  ”ÃÌ· Œœ„«  SignalR
+        builder.Services.AddSignalR();
+
+
         var app = builder.Build();
 
         app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
@@ -233,6 +244,9 @@ public class Program
         #endregion
 
         //app.UseMiddleware<RateLimitPerIpMiddleware>();
+        app.MapHealthChecks("/health");
+
+
         app.UseMiddleware<RequestTimingMiddleware>();
         app.UseStaticFiles();
         app.UseHttpsRedirection();
@@ -241,8 +255,10 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
+        //  ”ÃÌ· SignalR
+        app.MapHub<ChatHub>("/chathub");
 
-
+        app.MapGet("/", () => "SignalR Example Running");
         app.Run();
     }
     public static async Task SeedRolesAsync(IServiceProvider serviceProvider)

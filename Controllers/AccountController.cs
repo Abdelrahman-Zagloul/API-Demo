@@ -29,7 +29,7 @@ namespace API_Demo.Controllers
 
             SetRefreshTokenInCookie(result.RefreshToken!, result.RefreshTokenExpiration);
             return Ok(result);
-        }
+        }  
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginUserDto loginUserDto)

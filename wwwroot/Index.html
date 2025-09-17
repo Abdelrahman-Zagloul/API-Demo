@@ -1,56 +1,36 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Simple Product</title>
+    <title>SignalR Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 </head>
 <body>
-    <h1>Message from API:</h1>
-    <div>Click the button to get data</div>
+    <h2>Chat Example</h2>
+    <input type="text" id="userInput" placeholder="Name" />
+    <input type="text" id="messageInput" placeholder="Message" />
+    <button onclick="sendMessage()">Send</button>
 
-    <table id="result" border>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Category Name</th>
-            </tr>
-        </thead>
-        <tbody id="productBody">
-        </tbody>
-    </table>
+    <ul id="messagesList"></ul>
 
-    <button id="loadBtn">Load Product</button>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $("#loadBtn").click(function () {
-                $.ajax({
-                    url: "https://localhost:7250/Product", 
-                    method: "GET",
-                    success: function (data) {
-                        const tbody = document.getElementById("productBody");
-                        tbody.innerHTML = ""; 
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
 
-                        for (let product of data) {
-                            tbody.innerHTML += `
-                                    <tr>
-                                        <td>${product.id}</td>
-                                        <td>${product.name}</td>
-                                        <td>${product.price}</td>
-                                        <td>${product.categoryName}</td>
-                                    </tr>
-                                `;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        $("#productBody").html("<tr><td colspan='4'>Error fetching data</td></tr>");
-                        console.error(error);
-                    }
-                });
-            });
+        connection.on("ReceiveMessage", (user, message) => {
+            const li = document.createElement("li");
+            li.textContent = `${user}: ${message}`;
+            document.getElementById("messagesList").appendChild(li);
         });
+
+        connection.start().catch(err => console.error(err.toString()));
+
+        function sendMessage() {
+            const user = document.getElementById("userInput").value;
+            const message = document.getElementById("messageInput").value;
+            connection.invoke("SendMessage", user, message)
+                .catch(err => console.error(err.toString()));
+        }
     </script>
 </body>
 </html>

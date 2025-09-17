@@ -3,19 +3,22 @@ using Microsoft.AspNetCore.Mvc;
 using API_Demo.Dto;
 using API_Demo.Model;
 using API_Demo.Repository;
+using API_Demo.Logger;
 
 namespace API_Demo.Controllers
 {
     [ApiController]
     [Route("api/[Controller]")]
-    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    //[Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ILogging _logger;
 
-        public CategoryController(ICategoryRepository categoryRepository)
+        public CategoryController(ICategoryRepository categoryRepository, ILogging logger)
         {
             _categoryRepository = categoryRepository;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -23,9 +26,13 @@ namespace API_Demo.Controllers
         {
             var categories = _categoryRepository.GetAll();
             if (!categories.Any())
+            {
+                _logger.Log(LogLevel.Warning, "Category Can be null");
                 return NotFound();
+            }
 
             var categoriesDto = categories.Select(x => new CategoryDto() { Id = x.Id, Name = x.Name, NumberOfProduct = x.Products.Count() });
+            _logger.Log(LogLevel.Information, "Return All Category Successfully");
             return Ok(categoriesDto);
         }
 
@@ -34,7 +41,11 @@ namespace API_Demo.Controllers
         {
             var category = _categoryRepository.GetById(id);
             if (category == null)
+            {
+                _logger.Log(LogLevel.Error, "No Category With this Id");
                 return NotFound();
+            }
+            _logger.Log(LogLevel.Information, "Return Category Successfully");
             return Ok(new { category.Id, category.Name });
         }
 
