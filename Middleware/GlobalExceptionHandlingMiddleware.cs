@@ -30,8 +30,6 @@
                 };
                 await context.Response.WriteAsJsonAsync(errorResponse);
             }
-
-
         }
     }
 }
